@@ -14,6 +14,9 @@ typedef struct {
     bool button_state;
     uint32_t press_count;
     char* ip_address;
+    float temperature;
+    float humidity;
+    bool sensor_valid;
 } system_status_t;
 
 // Función para obtener el estado del sistema
