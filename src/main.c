@@ -11,7 +11,7 @@
 static const char *TAG = "MAIN";
 
 void app_main(void) {
-    ESP_LOGI(TAG, "🚀 Iniciando Sistema ESP32-C3");
+    ESP_LOGI(TAG, "📡 Iniciando Sistema ESP32-C3");
     
     // 1. Inicializar hardware
     hardware_init();
@@ -43,14 +43,14 @@ void app_main(void) {
         oled_update();
         vTaskDelay(2000 / portTICK_PERIOD_MS);
         
-        ESP_LOGI(TAG, "🎉 Sistema listo: http://%s", ip);
+        ESP_LOGI(TAG, "✅ Sistema listo: http://%s", ip);
     } else {
         ESP_LOGE(TAG, "❌ WiFi falló - Modo local");
         oled_clear();
         oled_draw_text_centered(1, "MODO LOCAL");
         oled_draw_text_centered(2, "Sin WiFi");
         oled_update();
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
+        vTaskDelay(8000 / portTICK_PERIOD_MS);
     }
     
     // 4. Bucle principal (sin reconexión automática)
