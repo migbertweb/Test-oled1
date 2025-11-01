@@ -48,4 +48,7 @@ void oled_show_status_screen(led_state_t led_state, uint32_t press_count);
 void oled_show_welcome_screen(void);
 void oled_show_button_debug(led_state_t led_state, button_state_t button_state);
 
+// Agregar esta función
+void oled_show_web_info(const char* ip_address);
+
 #endif // OLED_H

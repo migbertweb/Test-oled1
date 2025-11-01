@@ -286,3 +286,12 @@ void oled_show_button_debug(led_state_t led_state, button_state_t button_state) 
     
     oled_update();
 }
+
+void oled_show_web_info(const char* ip_address) {
+    oled_clear();
+    oled_draw_text_centered(0, "WEB SERVER");
+    oled_draw_text_centered(1, "Conectado:");
+    oled_draw_text_centered(2, ip_address);
+    oled_draw_text_centered(3, "Listo!");
+    oled_update();
+}

@@ -1,72 +1,98 @@
 #include <stdio.h>
-#include <string.h>
+#include <stdbool.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "esp_system.h"
 #include "esp_log.h"
 #include "oled.h"
 #include "hardware.h"
+#include "wifi_diagnostic.h"
+#include "wifi_config.h"
 
 static const char *TAG = "MAIN";
 
-// Variables globales
-// static uint32_t display_mode = 0; // 0=Estado, 1=Debug, 2=Welcome
-// static uint32_t last_mode_change = 0;
-// static const uint32_t MODE_CHANGE_DELAY = 5000; // 5 segundos
-
 void app_main(void) {
- ESP_LOGI(TAG, "Iniciando sistema LED + Boton + OLED");
+    ESP_LOGI(TAG, "=== DIAGNOSTICO WIFI UNIFICADO ===");
     
-    // Inicializar todos los componentes
+    // 1. Inicializar hardware básico
+    ESP_LOGI(TAG, "1. Inicializando hardware...");
     hardware_init();
     i2c_master_init();
     oled_init();
     
-    // Mostrar pantalla de bienvenida
-    oled_show_welcome_screen();
-    vTaskDelay(4000 / portTICK_PERIOD_MS);
+    oled_clear();
+    oled_draw_text_centered(1, "DIAGNOSTICO WIFI");
+    oled_draw_text_centered(2, "Iniciando...");
+    oled_update();
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
     
-    ESP_LOGI(TAG, "Sistema listo - LED:GPIO%d, Boton:GPIO%d", LED_GPIO, BUTTON_GPIO);
+    // 2. Inicializar WiFi UNA sola vez
+    ESP_LOGI(TAG, "2. Inicializando sistema WiFi...");
+    oled_clear();
+    oled_draw_text_centered(1, "INIC. WIFI");
+    oled_draw_text_centered(2, "Espere...");
+    oled_update();
     
-    // uint32_t last_display_update = 0;
-    // const uint32_t DISPLAY_UPDATE_INTERVAL = 200; // ms
-    
-    while(1) {
-        // Actualizar hardware (leer botón con debounce)
-        hardware_update();
-        
-        /* uint32_t current_time = xTaskGetTickCount() * portTICK_PERIOD_MS;
-        
-        // Cambio automático de modo cada 5 segundos
-        if ((current_time - last_mode_change) > MODE_CHANGE_DELAY) {
-            display_mode = (display_mode + 1) % 3; // Ciclar entre 0,1,2
-            last_mode_change = current_time;
-            ESP_LOGI(TAG, "Cambiando a modo display: %lu", display_mode);
-        }
-        
-        // Actualizar display periódicamente
-        if ((current_time - last_display_update) > DISPLAY_UPDATE_INTERVAL) {
-            switch(display_mode) {
-                case 0: // Modo estado principal
-                    oled_show_status_screen(led_get_state(), button_get_press_count());
-                    break;
-                    
-                case 1: // Modo debug
-                    oled_show_button_debug(led_get_state(), button_read());
-                    break;
-                    
-                case 2: // Modo información
-                    oled_show_welcome_screen();
-                    break;
-            }
-            last_display_update = current_time;
-        } */
-        
-                // Mostrar siempre la pantalla de debug
-        oled_show_button_debug(led_get_state(), button_read());
-
-        // Pequeña pausa para no saturar la CPU
-        vTaskDelay(10 / portTICK_PERIOD_MS);
+    if (!wifi_diagnostic_init()) {
+        ESP_LOGE(TAG, "❌ FALLO INICIALIZACION WIFI");
+        oled_clear();
+        oled_draw_text_centered(1, "ERROR WIFI");
+        oled_draw_text_centered(2, "Reinicia dispositivo");
+        oled_update();
+        while(1) { vTaskDelay(1000 / portTICK_PERIOD_MS); }
     }
-
+    
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
+    
+    // 3. Escanear redes
+    ESP_LOGI(TAG, "3. Escaneando redes...");
+    oled_clear();
+    oled_draw_text_centered(1, "ESCANEANDO");
+    oled_draw_text_centered(2, "Redes WiFi...");
+    oled_update();
+    
+    wifi_diagnostic_scan();
+    
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
+    
+    // 4. Intentar conexión
+    ESP_LOGI(TAG, "4. Conectando a: %s", WIFI_SSID);
+    oled_clear();
+    oled_draw_text_centered(0, "CONECTANDO");
+    oled_draw_text_centered(1, WIFI_SSID);
+    oled_draw_text_centered(2, "Espere...");
+    oled_update();
+    
+    bool connected = wifi_diagnostic_connect(WIFI_SSID, WIFI_PASSWORD);
+    
+    // 5. Mostrar resultado
+    if (connected) {
+        char* ip = wifi_diagnostic_get_ip();
+        ESP_LOGI(TAG, "✅ CONEXION EXITOSA - IP: %s", ip);
+        
+        oled_clear();
+        oled_draw_text_centered(0, "✅ CONECTADO");
+        oled_draw_text_centered(1, ip);
+        oled_draw_text_centered(2, "Web Server Listo");
+        oled_update();
+        
+        // Aquí iniciarías el servidor web...
+        // web_server_start();
+        
+    } else {
+        ESP_LOGE(TAG, "❌ FALLO CONEXION");
+        
+        oled_clear();
+        oled_draw_text_centered(0, "❌ ERROR WIFI");
+        oled_draw_text_centered(1, "Verifica:");
+        oled_draw_text_centered(2, "- SSID/Password");
+        oled_draw_text_centered(3, "- Señal WiFi");
+        oled_update();
+    }
+    
+    ESP_LOGI(TAG, "=== DIAGNOSTICO COMPLETADO ===");
+    
+    // Mantener resultado
+    while(1) {
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
 }
