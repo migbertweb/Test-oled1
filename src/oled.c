@@ -263,20 +263,17 @@ void oled_show_button_debug(led_state_t led_state, button_state_t button_state) 
     oled_clear();
     // oled_draw_text_centered(0, "DEBUG");
     // Estado del LED
-    oled_draw_text(0, 2, "LED:");
+    oled_draw_text(2, 0, "LED:");
     if (led_state == LED_ON) {
-        oled_draw_text(30, 2, "ENCENDIDO");
-        // Dibujar un indicador visual del LED
-        oled_draw_fill_rect(45, 2, 4, 4);
+        oled_draw_text(26, 0, "Encendido");
     } else {
-        oled_draw_text(30, 2, "APAGADO");
-        oled_draw_rect(45, 2, 4, 4);
+        oled_draw_text(26, 0, "Apagado");
     }
     
     oled_draw_text(2, 10, "GPIO4:");
     oled_draw_text(39, 10, button_state == BUTTON_PRESSED ? "PRESS" : "LIBRE");
     
-    oled_draw_text(2, 20, "LED GPIO3:");
+    oled_draw_text(2, 20, "GPIO3:");
     oled_draw_text(39, 20, led_get_state() ? "ON" : "OFF");
 
     // Indicador visual del botón
