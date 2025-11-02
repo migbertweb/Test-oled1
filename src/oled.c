@@ -286,3 +286,46 @@ void oled_show_button_debug(led_state_t led_state, button_state_t button_state) 
     
     oled_update();
 }
+
+void oled_show_combined_status(button_state_t button_state, led_state_t led_state, 
+                              uint32_t press_count, const char* ip, int rssi) {
+    char buffer[32];
+    
+    oled_clear();
+    
+    // Header con información WiFi
+    oled_draw_text_centered(0, ip);
+
+    // Señal WiFi
+    // snprintf(buffer, sizeof(buffer), "%d dBm", rssi);
+    // oled_draw_text(60, 0, buffer);
+    
+    // Estado del LED
+    oled_draw_text(0, 10, "LED:");
+    oled_draw_text(30, 10, led_state ? "ON " : "OFF");
+    if (led_state) {
+        oled_draw_fill_rect(55, 9, 4, 4); // Indicador visual
+    } else {
+        oled_draw_rect(55, 9, 4, 4);
+    }
+    
+    // Estado del botón
+    oled_draw_text(0, 20, "BOTON:");
+    oled_draw_text(40, 20, button_state == BUTTON_PRESSED ? "PRESS" : "FREE");
+    if (button_state == BUTTON_PRESSED) {
+        oled_draw_fill_rect(75, 19, 4, 4); // Indicador visual
+    } else {
+        oled_draw_rect(75, 19, 4, 4);
+    }
+    
+    // Contador de pulsaciones
+    oled_draw_text(0, 30, "PULS:");
+    snprintf(buffer, sizeof(buffer), "%lu", press_count);
+    oled_draw_text(35, 30, buffer);
+    
+    // Instrucciones
+    oled_draw_text_centered(4, "Web: http://");
+    oled_draw_text_centered(5, ip);
+    
+    oled_update();
+}

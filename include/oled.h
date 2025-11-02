@@ -48,4 +48,7 @@ void oled_show_status_screen(led_state_t led_state, uint32_t press_count);
 void oled_show_welcome_screen(void);
 void oled_show_button_debug(led_state_t led_state, button_state_t button_state);
 
+void oled_show_combined_status(button_state_t button_state, led_state_t led_state, 
+                              uint32_t press_count, const char* ip, int rssi);
+                              
 #endif // OLED_H
