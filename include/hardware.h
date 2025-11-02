@@ -8,6 +8,8 @@
 // Configuración de pines
 #define LED_GPIO         3
 #define BUTTON_GPIO      4
+// Pin para sensor DHT11 (ajusta según tu conexión)
+#define DHT11_GPIO       1
 
 // Estados
 typedef enum {
@@ -35,5 +37,10 @@ uint32_t button_get_press_count(void);
 
 // Función de actualización (para debounce)
 void hardware_update(void);
+
+// Lecturas del sensor DHT11 (actualizadas en segundo plano)
+float hardware_get_temperature(void);
+float hardware_get_humidity(void);
+bool hardware_sensor_valid(void);
 
 #endif // HARDWARE_H

@@ -6,7 +6,10 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include <string.h>
+<<<<<<< HEAD
 #include "dht11_sensor.h"
+=======
+>>>>>>> dfecfd08907d8c1119f8ae96d2f40eb00149c613
 
 static const char *TAG = "WEB_SERVER";
 static httpd_handle_t server = NULL;
@@ -28,8 +31,11 @@ static const char* HTML_PAGE =
 "        .wifi-good { background: #4CAF50; color: white; }"
 "        .wifi-weak { background: #FF9800; color: white; }"
 "        .wifi-poor { background: #f44336; color: white; }"
+<<<<<<< HEAD
 "        .sensor-ok { background: #4CAF50; color: white; padding: 5px; border-radius: 3px; }"
 "        .sensor-error { background: #f44336; color: white; padding: 5px; border-radius: 3px; }"
+=======
+>>>>>>> dfecfd08907d8c1119f8ae96d2f40eb00149c613
 "        .btn { background: #008CBA; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; width: 100%; font-size: 16px; }"
 "        .btn:hover { background: #005f7a; }"
 "        .info { background: #e7f3ff; padding: 10px; border-radius: 5px; margin: 10px 0; }"
@@ -38,6 +44,7 @@ static const char* HTML_PAGE =
 "</head>"
 "<body>"
 "    <div class='container'>"
+<<<<<<< HEAD
 "        <h1>ESP32-C3 Control Panel</h1>"
 "        "
 "        <div class='info'>"
@@ -47,12 +54,24 @@ static const char* HTML_PAGE =
 "        "
 "        <div class='section'>"
 "            <h2>LED Status</h2>"
+=======
+"        <h1>ESP32-C3 Control</h1>"
+"        "
+"        <div class='info'>"
+"            <strong>IP:</strong> %s<br>"
+"            <strong>Senal WiFi:</strong> <span class='%s'>%d dBm</span>"
+"        </div>"
+"        "
+"        <div class='section'>"
+"            <h2>Estado del LED</h2>"
+>>>>>>> dfecfd08907d8c1119f8ae96d2f40eb00149c613
 "            <div class='status %s' id='ledStatus'>"
 "                LED: %s"
 "            </div>"
 "        </div>"
 "        "
 "        <div class='section'>"
+<<<<<<< HEAD
 "            <h2>LED Control</h2>"
 "            <button class='btn' onclick='controlLED(1)'>TURN ON LED</button>"
 "            <button class='btn' onclick='controlLED(0)'>TURN OFF LED</button>"
@@ -77,6 +96,32 @@ static const char* HTML_PAGE =
 "        </div>"
 "        "
 "        <button class='btn' onclick='updateStatus()'>REFRESH ALL</button>"
+=======
+"            <h2>Control LED</h2>"
+"            <button class='btn' onclick='controlLED(1)'>ENCENDER LED</button>"
+"            <button class='btn' onclick='controlLED(0)'>APAGAR LED</button>"
+"            <button class='btn' onclick='controlLED(2)'>ALTERNAR LED</button>"
+        "        </div>"
+        "        "
+        "        <div class='section'>"
+        "            <h2>Informacion del Sistema</h2>"
+        "            <div class='info'>"
+        "                <strong>Pulsaciones del boton:</strong> <span id='pressCount'>%lu</span><br>"
+        "                <strong>Estado del boton:</strong> <span id='buttonState'>%s</span>"
+        "            </div>"
+        "        </div>"
+        "        "
+        "        <div class='section'>"
+        "            <h2>Sensor DHT11</h2>"
+        "            <div class='info'>"
+        "                <strong>Temperatura:</strong> <span id='temperature'>%.1f °C</span><br>"
+        "                <strong>Humedad:</strong> <span id='humidity'>%.1f %%</span><br>"
+        "                <strong>Estado:</strong> <span id='sensorStatus'>%s</span>"
+        "            </div>"
+        "        </div>"
+"        "
+"        <button class='btn' onclick='updateStatus()'>ACTUALIZAR TODO</button>"
+>>>>>>> dfecfd08907d8c1119f8ae96d2f40eb00149c613
 "        "
 "        <script>"
 "        function controlLED(action) {"
@@ -97,6 +142,7 @@ static const char* HTML_PAGE =
 "            fetch('/status')"
 "            .then(response => response.json())"
 "            .then(data => {"
+<<<<<<< HEAD
 "                // Update LED"
 "                const ledStatus = document.getElementById('ledStatus');"
 "                ledStatus.className = 'status ' + (data.led_state ? 'led-on' : 'led-off');"
@@ -120,6 +166,34 @@ static const char* HTML_PAGE =
 "        setInterval(updateStatus, 3000);"
 "        "
 "        // Update on page load"
+=======
+"                // Actualizar LED"
+"                const ledStatus = document.getElementById('ledStatus');"
+"                ledStatus.className = 'status ' + (data.led_state ? 'led-on' : 'led-off');"
+"                ledStatus.textContent = 'LED: ' + (data.led_state ? 'ENCENDIDO' : 'APAGADO');"
+                "                "
+                "                // Actualizar informacion"
+                "                document.getElementById('pressCount').textContent = data.press_count;"
+                "                document.getElementById('buttonState').textContent = data.button_state ? 'PRESIONADO' : 'LIBERADO';"
+                "                "
+                "                // Actualizar datos del sensor DHT11"
+                "                if(data.sensor_valid) {"
+                "                    document.getElementById('temperature').textContent = data.temperature.toFixed(1) + ' °C';"
+                "                    document.getElementById('humidity').textContent = data.humidity.toFixed(1) + ' %';"
+                "                    document.getElementById('sensorStatus').textContent = 'VÁLIDO';"
+                "                } else {"
+                "                    document.getElementById('temperature').textContent = 'N/A';"
+                "                    document.getElementById('humidity').textContent = 'N/A';"
+                "                    document.getElementById('sensorStatus').textContent = 'NO DISPONIBLE';"
+                "                }"
+"            });"
+"        }"
+"        "
+"        // Actualizar automaticamente cada 3 segundos"
+"        setInterval(updateStatus, 3000);"
+"        "
+"        // Actualizar al cargar la pagina"
+>>>>>>> dfecfd08907d8c1119f8ae96d2f40eb00149c613
 "        updateStatus();"
 "        </script>"
 "    </div>"
@@ -130,11 +204,16 @@ static const char* HTML_PAGE =
 static esp_err_t root_get_handler(httpd_req_t *req) {
     system_status_t status = web_get_system_status();
     
+<<<<<<< HEAD
+=======
+    // Determinar clase CSS para senal WiFi
+>>>>>>> dfecfd08907d8c1119f8ae96d2f40eb00149c613
     const char* wifi_class = "wifi-poor";
     int rssi = wifi_get_rssi();
     if (rssi > -60) wifi_class = "wifi-good";
     else if (rssi > -75) wifi_class = "wifi-weak";
     
+<<<<<<< HEAD
     const char* sensor_status = status.sensor_valid ? "OK" : "ERROR";
     const char* sensor_class = status.sensor_valid ? "sensor-ok" : "sensor-error";
     
@@ -154,6 +233,27 @@ static esp_err_t root_get_handler(httpd_req_t *req) {
     httpd_resp_set_type(req, "text/html; charset=utf-8");
     httpd_resp_send(req, html_response, HTTPD_RESP_USE_STRLEN);
     
+=======
+    char html_response[4096];
+    int len = snprintf(html_response, sizeof(html_response), HTML_PAGE,
+             status.ip_address,
+             wifi_class, rssi,
+             status.led_state ? "led-on" : "led-off",
+             status.led_state ? "ENCENDIDO" : "APAGADO",
+             status.press_count,
+             status.button_state ? "PRESIONADO" : "LIBERADO",
+             status.sensor_valid ? status.temperature : 0.0f,
+             status.sensor_valid ? status.humidity : 0.0f,
+             status.sensor_valid ? "VÁLIDO" : "NO DISPONIBLE");
+    
+    // Configurar headers para UTF-8
+    httpd_resp_set_type(req, "text/html; charset=utf-8");
+    httpd_resp_set_hdr(req, "Content-Type", "text/html; charset=utf-8");
+    
+    httpd_resp_send(req, html_response, HTTPD_RESP_USE_STRLEN);
+    
+    ESP_LOGI(TAG, "Pagina web enviada (%d bytes)", len);
+>>>>>>> dfecfd08907d8c1119f8ae96d2f40eb00149c613
     return ESP_OK;
 }
 
@@ -161,11 +261,17 @@ static esp_err_t root_get_handler(httpd_req_t *req) {
 static esp_err_t status_get_handler(httpd_req_t *req) {
     system_status_t status = web_get_system_status();
     
+<<<<<<< HEAD
     char json_response[256];
     snprintf(json_response, sizeof(json_response),
              "{\"led_state\":%s,\"button_state\":%s,\"press_count\":%lu,"
              "\"ip_address\":\"%s\",\"rssi\":%d,"
              "\"temperature\":%.1f,\"humidity\":%.1f,\"sensor_valid\":%s}",
+=======
+    char json_response[512];
+    snprintf(json_response, sizeof(json_response),
+             "{\"led_state\":%s,\"button_state\":%s,\"press_count\":%lu,\"ip_address\":\"%s\",\"rssi\":%d,\"temperature\":%.1f,\"humidity\":%.1f,\"sensor_valid\":%s}",
+>>>>>>> dfecfd08907d8c1119f8ae96d2f40eb00149c613
              status.led_state ? "true" : "false",
              status.button_state ? "true" : "false",
              status.press_count,
@@ -309,12 +415,18 @@ system_status_t web_get_system_status(void) {
     status.button_state = button_read();
     status.press_count = button_get_press_count();
     status.ip_address = wifi_get_ip();
+<<<<<<< HEAD
     
     // Leer datos del sensor DHT11
     dht11_data_t sensor_data = dht11_read_data();
     status.temperature = sensor_data.temperature;
     status.humidity = sensor_data.humidity;
     status.sensor_valid = sensor_data.valid;
+=======
+    status.temperature = hardware_get_temperature();
+    status.humidity = hardware_get_humidity();
+    status.sensor_valid = hardware_sensor_valid();
+>>>>>>> dfecfd08907d8c1119f8ae96d2f40eb00149c613
     
     return status;
 }
