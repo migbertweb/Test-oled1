@@ -3,6 +3,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/gpio.h"
+// Biblioteca DHT (esp32-dht11)
+#include "esp32-dht11.h"
 
 static const char *TAG = "HARDWARE";
 
@@ -12,6 +14,36 @@ static button_state_t last_button_state = BUTTON_RELEASED;
 static uint32_t press_count = 0;
 static uint32_t last_debounce_time = 0;
 static const uint32_t DEBOUNCE_DELAY = 50; // ms
+
+// DHT11 - lecturas en segundo plano
+static float s_last_temperature = 0.0f;
+static float s_last_humidity = 0.0f;
+static bool s_sensor_valid = false;
+
+// Tarea que lee el DHT11 periódicamente
+static void dht_task(void *arg) {
+    dht11_t dht;
+    dht.dht11_pin = DHT11_GPIO;
+    dht.temperature = 0.0f;
+    dht.humidity = 0.0f;
+
+    const TickType_t delay = pdMS_TO_TICKS(5000); // 5 segundos entre lecturas
+
+    while (1) {
+        int res = dht11_read(&dht, 3);
+        if (res == 0) {
+            s_last_temperature = dht.temperature;
+            s_last_humidity = dht.humidity;
+            s_sensor_valid = true;
+            ESP_LOGI(TAG, "DHT11 lectura OK - Temp: %.1f C, Hum: %.1f%%", s_last_temperature, s_last_humidity);
+        } else {
+            s_sensor_valid = false;
+            ESP_LOGW(TAG, "DHT11 lectura fallida");
+        }
+
+        vTaskDelay(delay);
+    }
+}
 
 void hardware_init(void) {
     // Configurar LED como salida
@@ -38,6 +70,12 @@ void hardware_init(void) {
     led_set(LED_OFF);
     
     ESP_LOGI(TAG, "Hardware inicializado - LED: GPIO%d, Botón: GPIO%d", LED_GPIO, BUTTON_GPIO);
+
+    // Crear tarea de lectura del DHT11
+    BaseType_t t = xTaskCreatePinnedToCore(dht_task, "dht_task", 2048, NULL, 5, NULL, 0);
+    if (t != pdPASS) {
+        ESP_LOGW(TAG, "No se pudo crear tarea dht_task");
+    }
 }
 
 void led_set(led_state_t state) {
@@ -87,4 +125,16 @@ void hardware_update(void) {
     }
     
     last_button_state = current_button_state;
+}
+
+float hardware_get_temperature(void) {
+    return s_last_temperature;
+}
+
+float hardware_get_humidity(void) {
+    return s_last_humidity;
+}
+
+bool hardware_sensor_valid(void) {
+    return s_sensor_valid;
 }

@@ -54,15 +54,24 @@ static const char* HTML_PAGE =
 "            <button class='btn' onclick='controlLED(1)'>ENCENDER LED</button>"
 "            <button class='btn' onclick='controlLED(0)'>APAGAR LED</button>"
 "            <button class='btn' onclick='controlLED(2)'>ALTERNAR LED</button>"
-"        </div>"
-"        "
-"        <div class='section'>"
-"            <h2>Informacion del Sistema</h2>"
-"            <div class='info'>"
-"                <strong>Pulsaciones del boton:</strong> <span id='pressCount'>%lu</span><br>"
-"                <strong>Estado del boton:</strong> <span id='buttonState'>%s</span>"
-"            </div>"
-"        </div>"
+        "        </div>"
+        "        "
+        "        <div class='section'>"
+        "            <h2>Informacion del Sistema</h2>"
+        "            <div class='info'>"
+        "                <strong>Pulsaciones del boton:</strong> <span id='pressCount'>%lu</span><br>"
+        "                <strong>Estado del boton:</strong> <span id='buttonState'>%s</span>"
+        "            </div>"
+        "        </div>"
+        "        "
+        "        <div class='section'>"
+        "            <h2>Sensor DHT11</h2>"
+        "            <div class='info'>"
+        "                <strong>Temperatura:</strong> <span id='temperature'>%.1f °C</span><br>"
+        "                <strong>Humedad:</strong> <span id='humidity'>%.1f %%</span><br>"
+        "                <strong>Estado:</strong> <span id='sensorStatus'>%s</span>"
+        "            </div>"
+        "        </div>"
 "        "
 "        <button class='btn' onclick='updateStatus()'>ACTUALIZAR TODO</button>"
 "        "
@@ -89,10 +98,21 @@ static const char* HTML_PAGE =
 "                const ledStatus = document.getElementById('ledStatus');"
 "                ledStatus.className = 'status ' + (data.led_state ? 'led-on' : 'led-off');"
 "                ledStatus.textContent = 'LED: ' + (data.led_state ? 'ENCENDIDO' : 'APAGADO');"
-"                "
-"                // Actualizar informacion"
-"                document.getElementById('pressCount').textContent = data.press_count;"
-"                document.getElementById('buttonState').textContent = data.button_state ? 'PRESIONADO' : 'LIBERADO';"
+                "                "
+                "                // Actualizar informacion"
+                "                document.getElementById('pressCount').textContent = data.press_count;"
+                "                document.getElementById('buttonState').textContent = data.button_state ? 'PRESIONADO' : 'LIBERADO';"
+                "                "
+                "                // Actualizar datos del sensor DHT11"
+                "                if(data.sensor_valid) {"
+                "                    document.getElementById('temperature').textContent = data.temperature.toFixed(1) + ' °C';"
+                "                    document.getElementById('humidity').textContent = data.humidity.toFixed(1) + ' %';"
+                "                    document.getElementById('sensorStatus').textContent = 'VÁLIDO';"
+                "                } else {"
+                "                    document.getElementById('temperature').textContent = 'N/A';"
+                "                    document.getElementById('humidity').textContent = 'N/A';"
+                "                    document.getElementById('sensorStatus').textContent = 'NO DISPONIBLE';"
+                "                }"
 "            });"
 "        }"
 "        "
@@ -123,7 +143,10 @@ static esp_err_t root_get_handler(httpd_req_t *req) {
              status.led_state ? "led-on" : "led-off",
              status.led_state ? "ENCENDIDO" : "APAGADO",
              status.press_count,
-             status.button_state ? "PRESIONADO" : "LIBERADO");
+             status.button_state ? "PRESIONADO" : "LIBERADO",
+             status.sensor_valid ? status.temperature : 0.0f,
+             status.sensor_valid ? status.humidity : 0.0f,
+             status.sensor_valid ? "VÁLIDO" : "NO DISPONIBLE");
     
     // Configurar headers para UTF-8
     httpd_resp_set_type(req, "text/html; charset=utf-8");
@@ -139,14 +162,17 @@ static esp_err_t root_get_handler(httpd_req_t *req) {
 static esp_err_t status_get_handler(httpd_req_t *req) {
     system_status_t status = web_get_system_status();
     
-    char json_response[256];
+    char json_response[512];
     snprintf(json_response, sizeof(json_response),
-             "{\"led_state\":%s,\"button_state\":%s,\"press_count\":%lu,\"ip_address\":\"%s\",\"rssi\":%d}",
+             "{\"led_state\":%s,\"button_state\":%s,\"press_count\":%lu,\"ip_address\":\"%s\",\"rssi\":%d,\"temperature\":%.1f,\"humidity\":%.1f,\"sensor_valid\":%s}",
              status.led_state ? "true" : "false",
              status.button_state ? "true" : "false",
              status.press_count,
              status.ip_address,
-             wifi_get_rssi());
+             wifi_get_rssi(),
+             status.temperature,
+             status.humidity,
+             status.sensor_valid ? "true" : "false");
     
     httpd_resp_set_type(req, "application/json");
     httpd_resp_send(req, json_response, HTTPD_RESP_USE_STRLEN);
@@ -282,6 +308,9 @@ system_status_t web_get_system_status(void) {
     status.button_state = button_read();
     status.press_count = button_get_press_count();
     status.ip_address = wifi_get_ip();
+    status.temperature = hardware_get_temperature();
+    status.humidity = hardware_get_humidity();
+    status.sensor_valid = hardware_sensor_valid();
     
     return status;
 }
